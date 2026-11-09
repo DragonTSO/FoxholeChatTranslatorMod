@@ -624,9 +624,23 @@ static DWORD WINAPI InitThread(LPVOID param) {
             nullptr
         };
 
+        uintptr_t textBase = 0;
+        size_t textSize = 0;
+        if (scanner::GetTextSection(moduleBase, textBase, textSize)) {
+            LogLoader(".text: 0x%llX - 0x%llX (%llu KB)",
+                      textBase, textBase + textSize, textSize / 1024);
+        } else {
+            LogLoader(".text セクション取得失敗");
+        }
+
         for (int i = 0; patterns[i]; i++) {
             uintptr_t match = scanner::FindPatternInModule(nullptr, patterns[i]);
-            if (!match) continue;
+            if (!match) {
+                LogLoader("vtable pattern[%d] 未検出", i);
+                continue;
+            }
+            LogLoader("vtable pattern[%d] 検出: 0x%llX (+0x%llX)",
+                      i, match, match - moduleBase);
 
             int32_t ripOff = *reinterpret_cast<int32_t*>(match + 3);
             uintptr_t resolved = match + 7 + ripOff;
@@ -635,7 +649,14 @@ static DWORD WINAPI InitThread(LPVOID param) {
             if (!VirtualQuery(reinterpret_cast<void*>(resolved), &mbi, sizeof(mbi)) ||
                 mbi.State != MEM_COMMIT) continue;
 
-            uintptr_t obj = *reinterpret_cast<uintptr_t*>(resolved);
+            uintptr_t obj = 0;
+            __try {
+                obj = *reinterpret_cast<uintptr_t*>(resolved);
+            }
+            __except (EXCEPTION_EXECUTE_HANDLER) {
+                LogLoader("vtable pattern[%d] 解決アドレス読込失敗: 0x%llX", i, resolved);
+                continue;
+            }
             if (obj == 0) continue;
 
             void** vt = nullptr;
@@ -647,6 +668,8 @@ static DWORD WINAPI InitThread(LPVOID param) {
                 LogLoader("UObject vtable: 0x%p (パターン[%d])", vt, i);
                 break;
             }
+            LogLoader("vtable pattern[%d] 候補無効: object=0x%llX vtable=0x%llX",
+                      i, obj, vtAddr);
         }
     }
 
@@ -882,6 +905,10 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
         }
 
         // 初期化スレッドを作成 (ローダーロック回避)
+        // 診断ホストではゲームのスキャンやフックを開始しない。
+        wchar_t probe[2] = {};
+        if (GetEnvironmentVariableW(L"CHAT_TRANSLATOR_PROBE", probe, 2) == 1 && probe[0] == L'1')
+            break;
         HANDLE hInitThread = CreateThread(nullptr, 0, InitThread, nullptr, 0, nullptr);
         if (hInitThread) CloseHandle(hInitThread);
         break;

@@ -127,6 +127,10 @@ set_target_properties(chat_translator PROPERTIES
 # テスト用ローダー (DLL動作確認)
 # ============================================================
 add_executable(test_loader test/test_loader.cpp)
+add_executable(dll_probe test/dll_probe.cpp)
+set_target_properties(dll_probe PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/diagnostics")
+target_compile_definitions(dll_probe PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+target_compile_options(dll_probe PRIVATE /utf-8)
 target_compile_definitions(test_loader PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
 target_compile_options(test_loader PRIVATE /utf-8)
 

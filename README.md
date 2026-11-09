@@ -56,7 +56,21 @@ Windows 10 / 11（64ビット）、Steam版Foxhole、空きディスク約5GB
 
 `install.ps1` を右クリック →「**PowerShell で実行**」
 
-Foxholeのインストール先が自動検出されてインストールされます。
+Steam のライブラリから Foxhole のインストール先が自動検出されてインストールされます。
+
+インストール時に以下のファイルがコピーされます。
+
+- `version.dll` / `chat_translator.dll`
+- `term_protection.txt` / `slang_dict.txt` / `tts_readings.txt`
+- `assets` フォルダ
+
+既存のファイルは上書き前に `backups` フォルダへ保存されます。既存の `config.ini` は保持されます。
+
+Foxhole の場所を手動指定する場合:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -FoxholePath "C:\Program Files (x86)\Steam\steamapps\common\Foxhole"
+```
 
 > **エラーが出た場合:** PowerShell を管理者として開き、以下を実行してください:
 > ```
@@ -90,6 +104,8 @@ Foxholeのインストール先が自動検出されてインストールされ�
 ## アンインストール
 
 1. Steamライブラリで Foxhole を右クリック →「プロパティ」→「ローカルファイル」→「参照」
-2. `War\Binaries\Win64\` 内の以下を削除:
-   - `version.dll` / `chat_translator.dll` / `config.ini`
-   - `assets` フォルダ / `tools` フォルダ
+2. `install.ps1` を右クリック →「PowerShell で実行」し、または以下を実行:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -Uninstall
+```

@@ -1,0 +1,39 @@
+FOXHOLE CHAT TRANSLATOR - VIETNAMESE AI SETUP
+
+This is a custom build, not an official upstream release.
+Both DLLs were rebuilt from modified source based on commit
+68e3d769ff91fd998a3015330f9ff21568d5377b.
+
+CAI DAT
+1. Tat Foxhole. Giai nen toan bo ZIP.
+2. Chay setup-vietnamese.bat.
+   Script backup config cu, dat Vietnamese va tat TTS.
+3. Neu khong tim thay game, nhap thu muc goc Foxhole.
+4. Giu cua so setup mo de tai Ollama/model, xem tien do va cho AI READY.
+5. Khoi dong game. Overlay dung nut VI va --, khong ve radio.
+
+Co the chay install.ps1 bang PowerShell de giu config cu.
+Muon thay config cu: .\install.ps1 -ResetConfig
+Chi dinh game: .\install.ps1 -FoxholePath "H:\path\Foxhole" -ResetConfig
+
+YEU CAU
+Windows x64, Microsoft Visual C++ Redistributable 2015-2022 x64.
+Neu thieu runtime, cai tu Microsoft:
+https://aka.ms/vs/17/release/vc_redist.x64.exe
+Internet va dung luong trong cho Ollama/model.
+Model khong nam trong ZIP. Setup tai va thu sinh ban dich truoc khi mo game.
+Neu tai loi, chay lai setup. AI READY khong chung minh game da nap DLL.
+Neu port Ollama dang duoc su dung, tat game/server do truoc khi chay setup.
+Setup khong tai TTS. -SkipAI chi danh cho kiem thu/cai file, khong xac nhan AI.
+TTS Off chan doc chat; upstream van co the khoi tao/tai thanh phan TTS.
+
+CHAN DOAN
+Log nam trong Foxhole\War\Binaries\Win64, khong phai thu muc ZIP:
+loader_log.txt, debug_log.txt.
+Neu crash, tat game va doi version.dll thanh version.dll.disabled
+(khong ghi de file .disabled da ton tai). Giu log de chan doan.
+
+GIOI HAN
+Build thanh cong khong chung minh tuong thich voi ban Foxhole hien tai.
+Chua kiem thu truc tiep trong game; chua xac dinh nguyen nhan crash cu.
+Mod hook vao game co rui ro EAC/BAN. Khong tat hoac vuot anti-cheat.
