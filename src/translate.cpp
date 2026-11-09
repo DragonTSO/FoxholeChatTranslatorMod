@@ -466,6 +466,11 @@ static std::string BuildPrompt(TranslationMode mode) {
                " Output ONE short sentence only."
                " Preserve numbers and times exactly."
                " Output ONLY the Korean translation, no explanations.";
+    case TranslationMode::VI:
+        return "Translate the following war-game chat message into natural, concise Vietnamese."
+               " Output ONE short sentence only."
+               " Preserve numbers and times exactly."
+               " Output ONLY the Vietnamese translation, no explanations.";
     default:
         return "Translate the following war-game chat message into natural, casual Japanese."
                " Output ONE short sentence only."
@@ -479,7 +484,7 @@ static std::string BuildRequestBody(const std::string& text, const std::string& 
     std::string prompt = BuildPrompt(translationMode);
     if (hasPlaceholders)
         prompt += " IMPORTANT: {{T0}}, {{T1}}, etc. are location/term placeholders —"
-                  " translate the sentence meaning but keep these tokens verbatim in your Japanese output.";
+                   " translate the sentence meaning but keep these tokens verbatim in your output.";
     prompt += "\n\n" + text;
 
     nlohmann::json opts;
@@ -656,6 +661,7 @@ static void WorkerThread() {
             result.original   = item.message;
             result.translated = translated;
             result.ok         = !translated.empty() && translated[0] != '(';
+            result.translationMode = item.translationMode;
             result.ttsMode    = item.ttsMode;
             cb(result);
         }

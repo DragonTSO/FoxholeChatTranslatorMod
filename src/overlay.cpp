@@ -39,7 +39,10 @@ static ImFont*                    g_cjkFont     = nullptr;
 
 static const ImWchar g_cjkGlyphRanges[] = {
     0x0020, 0x00FF,
+    0x0100, 0x024F,
+    0x0300, 0x036F,
     0x0400, 0x04FF,
+    0x1E00, 0x1EFF,
     0x2000, 0x206F,
     0x2190, 0x21FF,  // 矢印 (↓ 等)
     0x3000, 0x30FF,
@@ -49,6 +52,38 @@ static const ImWchar g_cjkGlyphRanges[] = {
     0xFF00, 0xFFEF,
     0, 0
 };
+
+// ベトナム語用 Latin 拡張範囲 (ă đ ơ ư / ạ ả ấ ệ … )
+// Noto Sans CJK JP はこの範囲を完全には収録していないため、Windows 標準の
+// Segoe UI を MergeMode で重ねて不足グリフを補う (既存グリフは CJK 側が優先)
+static const ImWchar g_vietGlyphRanges[] = {
+    0x0100, 0x024F,
+    0x0300, 0x036F,
+    0x1E00, 0x1EFF,
+    0, 0
+};
+
+// CJK フォントを読み込み、成功時は Segoe UI をベトナム語範囲でマージする
+static ImFont* LoadOverlayFont(ImGuiIO& io, const std::string& cjkPath) {
+    ImFont* font = io.Fonts->AddFontFromFileTTF(cjkPath.c_str(), 14.0f, nullptr, g_cjkGlyphRanges);
+    if (!font) return nullptr;
+
+    char winDir[MAX_PATH];
+    UINT len = GetWindowsDirectoryA(winDir, MAX_PATH);
+    if (len == 0 || len >= MAX_PATH) return font;
+    std::string latinPath = std::string(winDir) + "\\Fonts\\segoeui.ttf";
+    if (GetFileAttributesA(latinPath.c_str()) == INVALID_FILE_ATTRIBUTES) {
+        logging::Debug("[Overlay] Segoe UI が見つかりません (ベトナム語の一部が欠ける可能性): %s",
+                       latinPath.c_str());
+        return font;
+    }
+    ImFontConfig mergeCfg;
+    mergeCfg.MergeMode = true;
+    if (io.Fonts->AddFontFromFileTTF(latinPath.c_str(), 14.0f, &mergeCfg, g_vietGlyphRanges)) {
+        logging::Debug("[Overlay] ベトナム語グリフ補完フォントをマージ: %s", latinPath.c_str());
+    }
+    return font;
+}
 
 struct MessageEntry {
     std::string sender;
@@ -118,7 +153,7 @@ static bool InitImGui(IDXGISwapChain* swapChain) {
 
     std::string fontPath = g_assetsDir + "NotoSansCJKjp-Regular.otf";
     if (GetFileAttributesA(fontPath.c_str()) != INVALID_FILE_ATTRIBUTES) {
-        g_cjkFont = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 14.0f, nullptr, g_cjkGlyphRanges);
+        g_cjkFont = LoadOverlayFont(io, fontPath);
         if (g_cjkFont) {
             logging::Debug("[Overlay] CJK フォント読み込み成功: %s", fontPath.c_str());
         } else {
@@ -182,6 +217,7 @@ static const char* TranslationModeLabel(TranslationMode m) {
     case TranslationMode::RU:  return "RU";
     case TranslationMode::ZH:  return "ZH";
     case TranslationMode::KO:  return "KO";
+    case TranslationMode::VI:  return "VI";
     default:                   return "??";
     }
 }
@@ -211,8 +247,7 @@ static void RenderFrame() {
             std::string fontPath = g_assetsDir + "NotoSansCJKjp-Regular.otf";
             if (GetFileAttributesA(fontPath.c_str()) != INVALID_FILE_ATTRIBUTES) {
                 ImGuiIO& io = ImGui::GetIO();
-                g_cjkFont = io.Fonts->AddFontFromFileTTF(
-                    fontPath.c_str(), 14.0f, nullptr, g_cjkGlyphRanges);
+                g_cjkFont = LoadOverlayFont(io, fontPath);
                 if (g_cjkFont) {
                     ImGui_ImplDX11_InvalidateDeviceObjects();
                     ImGui_ImplDX11_CreateDeviceObjects();
@@ -249,7 +284,7 @@ static void RenderFrame() {
     if (s_lastFont != ImGui::GetFont()) {
         s_lastFont = ImGui::GetFont();
         static const char* kAllLabels[] = {
-            "--","JA","JAZ","EN","RU","ZH","KO","Src","Tr", nullptr
+            "--","JA","JAZ","EN","RU","ZH","KO","VI","Src","Tr", nullptr
         };
         float maxLabelW = 0.0f;
         for (int i = 0; kAllLabels[i]; ++i) {
@@ -620,7 +655,7 @@ bool overlay::Init() {
                              r.original.c_str(), r.translated.c_str());
 
         // TTS: 次の発話テキストを設定 (現在の発話完了後に読み上げる)
-        if (r.ttsMode != TtsMode::Off) {
+        if (r.ttsMode != TtsMode::Off && r.translationMode != TranslationMode::VI) {
             bool useTranslated = (r.ttsMode == TtsMode::Translated) && r.ok;
             tts::SetLatest((useTranslated ? r.translated : r.original).c_str());
         }

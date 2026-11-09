@@ -26,6 +26,7 @@ static TranslationMode ParseTranslationMode(const std::string& s) {
     if (s == "Russian")  return TranslationMode::RU;
     if (s == "Chinese")  return TranslationMode::ZH;
     if (s == "Korean")   return TranslationMode::KO;
+    if (s == "Vietnamese") return TranslationMode::VI;
     return TranslationMode::JA;
 }
 
@@ -80,7 +81,7 @@ void config::CycleTranslationMode() {
     static const TranslationMode kCycle[] = {
         TranslationMode::Off, TranslationMode::JA, TranslationMode::JAZ,
         TranslationMode::EN,  TranslationMode::RU, TranslationMode::ZH,
-        TranslationMode::KO
+        TranslationMode::KO,  TranslationMode::VI
     };
     static const int kCount = static_cast<int>(sizeof(kCycle) / sizeof(kCycle[0]));
     int cur = g_translationMode.load();

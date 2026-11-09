@@ -130,6 +130,21 @@ add_executable(test_loader test/test_loader.cpp)
 target_compile_definitions(test_loader PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
 target_compile_options(test_loader PRIVATE /utf-8)
 
+add_executable(vietnamese_mode_test
+    test/vietnamese_mode_test.cpp
+    src/config.cpp
+)
+target_include_directories(vietnamese_mode_test PRIVATE src)
+target_compile_definitions(vietnamese_mode_test PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+target_compile_options(vietnamese_mode_test PRIVATE /utf-8)
+
+add_custom_command(TARGET vietnamese_mode_test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/config.ini"
+        "$<TARGET_FILE_DIR:vietnamese_mode_test>/config.ini"
+    COMMENT "Copying config.ini for Vietnamese mode test"
+)
+
 # ============================================================
 # 翻訳テスト (スタンドアロン)
 # Ollama が起動している状態で実行する

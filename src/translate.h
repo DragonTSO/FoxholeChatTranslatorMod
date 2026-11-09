@@ -27,6 +27,7 @@ struct TranslateResult {
     std::string     original;
     std::string     translated;
     bool            ok      = true;              // false = 翻訳失敗 (Ollama 接続不可等)
+    TranslationMode translationMode = TranslationMode::JA;
     TtsMode         ttsMode = TtsMode::Off;      // キュー投入時のスナップショット
 };
 

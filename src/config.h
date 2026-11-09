@@ -15,6 +15,7 @@ enum class TranslationMode {
     RU,       // ロシア語
     ZH,       // 中国語
     KO,       // 韓国語
+    VI,       // ベトナム語 (TTS 無効)
 };
 
 // TTS 読み上げ対象のランタイム切り替えモード
@@ -55,7 +56,7 @@ const Config& Get();
 // --- ランタイム切り替え (スレッドセーフ) ---
 
 TranslationMode GetTranslationMode();
-// Off -> JA -> JAZ -> EN -> RU -> ZH -> KO -> Off と循環
+// Off -> JA -> JAZ -> EN -> RU -> ZH -> KO -> VI -> Off と循環
 void CycleTranslationMode();
 
 TtsMode GetTtsMode();
